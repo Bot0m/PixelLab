@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PixelLab</title>
+    <link rel="stylesheet" href="src/styles/main.css" />
+  </head>
+  <body>
+    <header class="pl-header" role="banner">
+      <div class="pl-header-bar">
+        <div class="pl-branding">
+          <h1 class="pl-brand">PixelLab</h1>
+          <p class="pl-tagline" data-i18n="tagline">Éditeur d'images léger</p>
+        </div>
+        <div class="pl-header-actions">
+          <div class="pl-locale-toggle" role="group" aria-label="Sélection de la langue">
+            <button type="button" class="pl-locale-button is-active" id="locale-fr" data-locale="fr">FR</button>
+            <button type="button" class="pl-locale-button" id="locale-en" data-locale="en">EN</button>
+          </div>
+          <button
+            type="button"
+            class="pl-theme-toggle"
+            id="theme-toggle"
+            aria-pressed="false"
+            aria-label="Activer le thème clair"
+          >
+            <span class="pl-theme-toggle__thumb" aria-hidden="true">
+              <span class="pl-theme-toggle__icon pl-theme-toggle__icon--sun">
+                <svg viewBox="0 0 24 24" class="pl-icon">
+                  <circle cx="12" cy="12" r="4" fill="currentColor"></circle>
+                  <g fill="currentColor">
+                    <path d="M12 2.5a1 1 0 0 1 1 1V5a1 1 0 0 1-2 0V3.5a1 1 0 0 1 1-1Z"></path>
+                    <path d="M12 19a1 1 0 0 1 1 1v1.5a1 1 0 0 1-2 0V20a1 1 0 0 1 1-1Z"></path>
+                    <path d="M4.22 4.22a1 1 0 0 1 1.41 0L6.77 5.36a1 1 0 0 1-1.41 1.41L4.22 5.63a1 1 0 0 1 0-1.41Z"></path>
+                    <path d="M17.23 17.23a1 1 0 0 1 1.41 0l1.14 1.14a1 1 0 0 1-1.41 1.41l-1.14-1.14a1 1 0 0 1 0-1.41Z"></path>
+                    <path d="M2.5 12a1 1 0 0 1 1-1H5a1 1 0 0 1 0 2H3.5a1 1 0 0 1-1-1Z"></path>
+                    <path d="M19 11a1 1 0 0 1 1-1h1.5a1 1 0 1 1 0 2H20a1 1 0 0 1-1-1Z"></path>
+                    <path d="M5.36 17.23a1 1 0 0 1 0 1.41L4.22 19.77a1 1 0 0 1-1.41-1.41l1.14-1.14a1 1 0 0 1 1.41 0Z"></path>
+                    <path d="M18.64 5.36a1 1 0 0 1 0-1.41l1.14-1.14a1 1 0 1 1 1.41 1.41L20.05 5.36a1 1 0 0 1-1.41 0Z"></path>
+                  </g>
+                </svg>
+              </span>
+              <span class="pl-theme-toggle__icon pl-theme-toggle__icon--moon">
+                <svg viewBox="0 0 24 24" class="pl-icon">
+                  <path
+                    fill="currentColor"
+                    d="M21 14.5A8.5 8.5 0 0 1 9.5 3a.75.75 0 0 0-.8-.99 9.5 9.5 0 1 0 12.29 12.29.75.75 0 0 0-.99-.8Z"
+                  ></path>
+                </svg>
+              </span>
+            </span>
+          </button>
+          <button
+            type="button"
+            class="pl-icon-button pl-info-button"
+            id="info-toggle"
+            aria-haspopup="dialog"
+            aria-expanded="false"
+            aria-controls="info-modal"
+          >
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" class="pl-icon">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"></circle>
+              <circle cx="12" cy="8" r="1" fill="currentColor"></circle>
+              <rect x="11" y="10" width="2" height="8" rx="1" fill="currentColor"></rect>
+            </svg>
+            <span class="sr-only">Afficher l'aide</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div id="info-modal" class="pl-modal pl-modal--info" role="dialog" aria-modal="true" aria-labelledby="info-title" hidden>
+      <div class="pl-modal__panel" role="document">
+        <header class="pl-modal__header">
+          <h2 id="info-title">Raccourcis &amp; aide</h2>
+          <button type="button" class="pl-icon-button pl-modal__close" id="info-close">
+            <span class="sr-only">Fermer</span>
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" class="pl-icon">
+              <path d="M6 6l12 12m0-12L6 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+        <div class="pl-modal__body">
+          <p>Utilisez ces raccourcis pour accélérer l'édition&nbsp;:</p>
+          <ul>
+            <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>O</kbd> : Ouvrir une image</li>
+            <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Z</kbd> : Annuler la dernière action</li>
+            <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> : Rétablir l'image d'origine</li>
+            <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> : Réinitialiser uniquement les filtres</li>
+            <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> : Basculer le mode recadrage</li>
+            <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>E</kbd> : Exporter</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="export-modal"
+      class="pl-modal pl-modal--center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="export-title"
+      hidden
+    >
+      <div class="pl-modal__panel" role="document">
+        <header class="pl-modal__header">
+          <h2 id="export-title">Exporter l'image</h2>
+          <button type="button" class="pl-icon-button pl-modal__close" id="export-close">
+            <span class="sr-only">Fermer</span>
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" class="pl-icon">
+              <path d="M6 6l12 12m0-12L6 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+        <form class="pl-modal__body" id="export-form" autocomplete="off">
+          <div class="pl-control">
+            <label for="export-name">Nom du fichier</label>
+            <input type="text" id="export-name" name="export-name" placeholder="pixellab-image" />
+          </div>
+          <div class="pl-control">
+            <label for="export-format">Format</label>
+            <select id="export-format" name="export-format">
+              <option value="png">PNG</option>
+              <option value="jpeg">JPEG</option>
+              <option value="webp">WebP</option>
+              <option value="svg">SVG</option>
+              <option value="pdf">PDF</option>
+            </select>
+          </div>
+          <div class="pl-dimensions">
+            <div class="pl-control">
+              <label for="export-width">Largeur (px)</label>
+              <input type="number" id="export-width" name="export-width" min="1" step="1" />
+            </div>
+            <div class="pl-control">
+              <label for="export-height">Hauteur (px)</label>
+              <input type="number" id="export-height" name="export-height" min="1" step="1" />
+            </div>
+          </div>
+          <div class="pl-control-inline">
+            <label>
+              <input type="checkbox" id="export-lock-ratio" name="export-lock-ratio" checked />
+              Verrouiller le ratio
+            </label>
+          </div>
+          <div class="pl-control-inline">
+            <label>
+              <input type="checkbox" id="export-follow-canvas" name="export-follow-canvas" checked />
+              Suivre la taille du canvas
+            </label>
+          </div>
+          <div class="pl-export-meta">
+            <output id="export-size" class="pl-export-size" aria-live="polite">Taille estimée —</output>
+            <p class="pl-hint">Si disponible, l'API du navigateur permettra de choisir l'emplacement du fichier.</p>
+          </div>
+          <footer class="pl-modal__footer">
+            <button type="button" class="pl-pill" id="export-cancel">Annuler</button>
+            <button type="submit" class="pl-pill pl-pill--accent" id="export-confirm">Exporter</button>
+          </footer>
+        </form>
+      </div>
+    </div>
+
+    <main class="pl-layout" role="main">
+      <section class="pl-toolbar" aria-label="Outils d'édition">
+        <div class="pl-toolbar-row">
+          <label class="pl-upload" for="file-input">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" class="pl-icon">
+              <path d="M4 17.5a2.5 2.5 0 0 1 2.5-2.5h1.586L9 12h6l.914 3h1.586A2.5 2.5 0 0 1 20 17.5v.5H4v-.5Z" fill="currentColor" />
+              <path d="M12 4v7m0 0l-2.5-2.5M12 11l2.5-2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Importer une image</span>
+            <input id="file-input" type="file" accept="image/*" />
+          </label>
+
+          <div class="pl-actions" role="toolbar" aria-label="Historique et export">
+            <button type="button" class="pl-pill" id="undo-button" disabled>
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" class="pl-icon">
+                <path d="M9 7L4 12l5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M20 12h-9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+              <span>Annuler</span>
+            </button>
+            <button type="button" class="pl-pill" id="redo-button" disabled>
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" class="pl-icon">
+                <path d="M15 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M4 12h11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+              <span>Rétablir original</span>
+            </button>
+            <button type="button" class="pl-pill" id="crop-toggle" disabled aria-pressed="false">
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" class="pl-icon">
+                <path d="M6 4v12a2 2 0 0 0 2 2h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                <path d="M4 6h12a2 2 0 0 1 2 2v12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+              <span>Mode recadrage</span>
+            </button>
+          </div>
+        </div>
+
+        <form class="pl-filters" aria-label="Filtres" autocomplete="off">
+          <fieldset class="pl-panel">
+            <legend>Filtres rapides</legend>
+
+            <div class="pl-control">
+              <label for="filter-contrast">Contraste</label>
+              <div class="pl-control-input">
+                <input
+                  id="filter-contrast"
+                  type="range"
+                  min="50"
+                  max="200"
+                  step="1"
+                  value="100"
+                  data-filter="contrast"
+                  data-label="Contraste"
+                />
+                <output for="filter-contrast" id="filter-contrast-output">100 %</output>
+              </div>
+            </div>
+
+            <div class="pl-control">
+              <label for="filter-saturation">Saturation</label>
+              <div class="pl-control-input">
+                <input
+                  id="filter-saturation"
+                  type="range"
+                  min="0"
+                  max="200"
+                  step="1"
+                  value="100"
+                  data-filter="saturation"
+                  data-label="Saturation"
+                />
+                <output for="filter-saturation" id="filter-saturation-output">100 %</output>
+              </div>
+            </div>
+
+            <div class="pl-control">
+              <label for="filter-blur">Flou</label>
+              <div class="pl-control-input">
+                <input
+                  id="filter-blur"
+                  type="range"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value="0"
+                  data-filter="blur"
+                  data-label="Flou"
+                />
+                <output for="filter-blur" id="filter-blur-output">0 px</output>
+              </div>
+            </div>
+
+            <button type="button" class="pl-reset" id="reset-filters">Réinitialiser les filtres</button>
+          </fieldset>
+        </form>
+        <button
+          type="button"
+          class="pl-pill pl-pill--accent"
+          id="export-button"
+          disabled
+          aria-haspopup="dialog"
+          aria-controls="export-modal"
+          aria-expanded="false"
+        >
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" class="pl-icon">
+            <path d="M12 4v11.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            <path d="M8.5 11.5L12 15l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M6 18.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          <span>Exporter</span>
+        </button>
+      </section>
+
+      <section class="pl-canvas" aria-live="polite">
+        <figure id="preview-frame" class="pl-preview" aria-labelledby="preview-caption">
+          <div class="pl-canvas-wrapper">
+            <canvas
+              id="editor-canvas"
+              class="pl-canvas-surface"
+              role="img"
+              aria-describedby="preview-caption"
+              hidden
+            ></canvas>
+            <div id="crop-overlay" class="pl-crop-overlay" hidden>
+              <div id="crop-rect" class="pl-crop-rect" hidden></div>
+              <p id="crop-hint" class="pl-crop-hint">Cliquez puis faites glisser pour définir la zone à conserver.</p>
+            </div>
+          </div>
+          <figcaption id="preview-caption">Sélectionnez ou déposez une image pour commencer</figcaption>
+        </figure>
+      </section>
+      <div id="pl-live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    </main>
+
+    <footer class="pl-footer">
+      <small data-i18n="footer">Développé par Tom</small>
+    </footer>
+
+    <script src="src/scripts/app.js" type="module"></script>
+  </body>
+</html>
