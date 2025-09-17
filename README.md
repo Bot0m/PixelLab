@@ -1,6 +1,7 @@
 # PixelLab
 
 Mini éditeur d'images front-end conçu avec HTML, CSS et JavaScript natif. Aucun build ni dépendance externe : ouvrez simplement `index.html` dans un navigateur moderne.
+Visiter sur : https://bot0m.github.io/PixelLab/
 
 ## Structure du projet
 
