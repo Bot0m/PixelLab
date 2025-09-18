@@ -1,7 +1,7 @@
 export const FILTER_CONFIG = {
   contrast: {
     label: "Contraste",
-    min: 50,
+    min: 0,
     max: 200,
     step: 1,
     unit: "%",

@@ -31,6 +31,8 @@
   --pl-toggle-moon: #cbd5f5;
   --pl-kbd-bg: rgba(255, 255, 255, 0.16);
   --pl-kbd-border: rgba(255, 255, 255, 0.2);
+  --pl-input-bg: rgba(8, 12, 24, 0.55);
+  --pl-input-border: rgba(255, 255, 255, 0.14);
 }
 
 :root[data-theme="light"] {
@@ -57,6 +59,8 @@
   --pl-toggle-moon: #475569;
   --pl-kbd-bg: rgba(15, 23, 42, 0.15);
   --pl-kbd-border: rgba(15, 23, 42, 0.22);
+  --pl-input-bg: rgba(255, 255, 255, 0.82);
+  --pl-input-border: rgba(15, 23, 42, 0.14);
 }
 
 * {
@@ -366,12 +370,17 @@ body {
 .pl-control select {
   font: inherit;
   color: inherit;
-  background: rgba(8, 12, 24, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--pl-input-bg);
+  border: 1px solid var(--pl-input-border);
   border-radius: 10px;
   padding: 0.55rem 0.75rem;
   outline: none;
   transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.pl-control input[type="text"]::placeholder,
+.pl-control input[type="number"]::placeholder {
+  color: var(--pl-text-muted);
 }
 
 .pl-control input:focus,
