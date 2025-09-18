@@ -10,6 +10,41 @@ import {
   canUndo,
 } from "./history.js";
 import { registerShortcuts } from "./shortcuts.js";
+import { tinylinkLogin, tinylinkCreateLink } from "./tinylink.js";
+
+const boutonLien = document.querySelector("#tinylink-btn");
+let shortUrl = null;
+
+async function initialiserTinyLink() {
+  try {
+    const token = await tinylinkLogin();
+    const resultat = await tinylinkCreateLink(token, "https://bot0m.github.io/PixelLab/");
+    shortUrl = resultat.shortUrl;
+
+    if (boutonLien) {
+      boutonLien.style.display = "inline-block";
+      boutonLien.textContent = "Copier le lien court";
+    }
+  } catch (erreur) {
+    console.warn("TinyLink indisponible :", erreur);
+    if (boutonLien) {
+      boutonLien.style.display = "inline-block";
+      boutonLien.disabled = true;
+      boutonLien.textContent = "Lien court indisponible";
+    }
+  }
+}
+
+if (boutonLien) {
+  boutonLien.addEventListener("click", () => {
+    if (!shortUrl) return;
+    navigator.clipboard.writeText(shortUrl);
+    boutonLien.textContent = "Lien copié !";
+    setTimeout(() => (boutonLien.textContent = "Copier le lien court"), 2000);
+  });
+}
+
+initialiserTinyLink();
 
 const TRANSFORM_DEFAULTS = {
   crop: { x: 0, y: 0, width: 1, height: 1 },
