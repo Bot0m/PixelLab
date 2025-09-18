@@ -57,6 +57,12 @@ const filterOutputs = new Map(
   ])
 );
 
+const supportsCanvasFilters = detectCanvasFilterSupport();
+if (!supportsCanvasFilters) {
+  rootElement.classList.add("pl-filter-fallback");
+  console.info("Filtres Canvas 2D natifs indisponibles, fallback logiciel activé.");
+}
+
 const SUPPORTED_TYPES = [
   "image/png",
   "image/jpeg",
@@ -249,6 +255,36 @@ function formatFileSize(bytes) {
   }
   const precision = value >= 100 ? 0 : value >= 10 ? 1 : 2;
   return `${value.toFixed(precision)} ${units[unitIndex]}`;
+}
+
+function clampByte(value) {
+  return Math.min(255, Math.max(0, Math.round(value)));
+}
+
+function detectCanvasFilterSupport() {
+  try {
+    const testCanvas = document.createElement("canvas");
+    testCanvas.width = 1;
+    testCanvas.height = 1;
+
+    const testContext = testCanvas.getContext("2d");
+    if (!testContext || typeof testContext.filter === "undefined") {
+      return false;
+    }
+
+    testContext.fillStyle = "#808080";
+    testContext.fillRect(0, 0, 1, 1);
+    const baseline = testContext.getImageData(0, 0, 1, 1).data[0];
+
+    testContext.filter = "brightness(200%)";
+    testContext.fillRect(0, 0, 1, 1);
+    const filtered = testContext.getImageData(0, 0, 1, 1).data[0];
+
+    return filtered > baseline;
+  } catch (error) {
+    console.warn("Impossible de vérifier le support des filtres canvas", error);
+    return false;
+  }
 }
 
 function resetExportSizeDisplay() {
@@ -609,12 +645,163 @@ function renderImage() {
 
   context.save();
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.filter = composeFilterString(state.filters);
-  context.drawImage(state.image, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+  if (supportsCanvasFilters) {
+    context.filter = composeFilterString(state.filters);
+    context.drawImage(state.image, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+  } else {
+    context.filter = "none";
+    context.drawImage(state.image, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+    applyFiltersFallbackToContext(context, state.filters);
+  }
   context.restore();
 
   syncExportOptionsWithCanvas();
   queueExportSizeUpdate();
+}
+
+function applyFiltersFallbackToContext(ctx, filters) {
+  const { width, height } = ctx.canvas;
+  if (!width || !height) {
+    return;
+  }
+
+  const needsContrast = Math.abs(filters.contrast - FILTER_DEFAULTS.contrast) > 0.01;
+  const needsSaturation = Math.abs(filters.saturation - FILTER_DEFAULTS.saturation) > 0.01;
+  const needsBlur = filters.blur > FILTER_DEFAULTS.blur + 0.01;
+
+  if (!needsContrast && !needsSaturation && !needsBlur) {
+    return;
+  }
+
+  const snapshot = ctx.getImageData(0, 0, width, height);
+  let working = new Uint8ClampedArray(snapshot.data);
+
+  if (needsContrast || needsSaturation) {
+    applyContrastSaturation(working, {
+      contrast: filters.contrast / 100,
+      saturation: filters.saturation / 100,
+      needsContrast,
+      needsSaturation,
+    });
+  }
+
+  if (needsBlur) {
+    working = applyGaussianBlur(working, width, height, filters.blur);
+  }
+
+  snapshot.data.set(working);
+  ctx.putImageData(snapshot, 0, 0);
+}
+
+function applyContrastSaturation(pixels, { contrast, saturation, needsContrast, needsSaturation }) {
+  if (!needsContrast && !needsSaturation) {
+    return;
+  }
+
+  const contrastFactor = Math.max(contrast, 0);
+  const saturationFactor = Math.max(saturation, 0);
+
+  const m11 = 0.213 + 0.787 * saturationFactor;
+  const m12 = 0.715 - 0.715 * saturationFactor;
+  const m13 = 0.072 - 0.072 * saturationFactor;
+  const m21 = 0.213 - 0.213 * saturationFactor;
+  const m22 = 0.715 + 0.285 * saturationFactor;
+  const m23 = 0.072 - 0.072 * saturationFactor;
+  const m31 = 0.213 - 0.213 * saturationFactor;
+  const m32 = 0.715 - 0.715 * saturationFactor;
+  const m33 = 0.072 + 0.928 * saturationFactor;
+
+  for (let i = 0; i < pixels.length; i += 4) {
+    let r = pixels[i];
+    let g = pixels[i + 1];
+    let b = pixels[i + 2];
+
+    if (needsContrast) {
+      r = clampByte((r - 128) * contrastFactor + 128);
+      g = clampByte((g - 128) * contrastFactor + 128);
+      b = clampByte((b - 128) * contrastFactor + 128);
+    }
+
+    if (needsSaturation) {
+      const sr = r * m11 + g * m12 + b * m13;
+      const sg = r * m21 + g * m22 + b * m23;
+      const sb = r * m31 + g * m32 + b * m33;
+      r = clampByte(sr);
+      g = clampByte(sg);
+      b = clampByte(sb);
+    }
+
+    pixels[i] = r;
+    pixels[i + 1] = g;
+    pixels[i + 2] = b;
+  }
+}
+
+function applyGaussianBlur(source, width, height, radius) {
+  const { kernel, radius: kernelRadius } = createGaussianKernel(radius);
+  if (!kernel || kernelRadius === 0) {
+    return new Uint8ClampedArray(source);
+  }
+
+  const temp = new Float32Array(source.length);
+  const result = new Uint8ClampedArray(source.length);
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4;
+      for (let channel = 0; channel < 4; channel += 1) {
+        let acc = 0;
+        for (let k = -kernelRadius; k <= kernelRadius; k += 1) {
+          const xi = clamp(x + k, 0, width - 1);
+          const idx = (y * width + xi) * 4 + channel;
+          acc += source[idx] * kernel[k + kernelRadius];
+        }
+        temp[offset + channel] = acc;
+      }
+    }
+  }
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4;
+      for (let channel = 0; channel < 4; channel += 1) {
+        let acc = 0;
+        for (let k = -kernelRadius; k <= kernelRadius; k += 1) {
+          const yi = clamp(y + k, 0, height - 1);
+          const idx = (yi * width + x) * 4 + channel;
+          acc += temp[idx] * kernel[k + kernelRadius];
+        }
+        result[offset + channel] = clampByte(acc);
+      }
+    }
+  }
+
+  return result;
+}
+
+function createGaussianKernel(radius) {
+  const sigma = Math.max(radius, 0.1);
+  const kernelRadius = Math.min(Math.ceil(sigma * 2.5), 30);
+  if (kernelRadius <= 0) {
+    return { kernel: null, radius: 0 };
+  }
+
+  const size = kernelRadius * 2 + 1;
+  const kernel = new Float32Array(size);
+  const sigma2 = 2 * sigma * sigma;
+  let sum = 0;
+
+  for (let i = -kernelRadius; i <= kernelRadius; i += 1) {
+    const value = Math.exp(-(i * i) / sigma2);
+    kernel[i + kernelRadius] = value;
+    sum += value;
+  }
+
+  for (let i = 0; i < size; i += 1) {
+    kernel[i] /= sum;
+  }
+
+  return { kernel, radius: kernelRadius };
 }
 
 function syncExportOptionsWithCanvas({ force = false } = {}) {
