@@ -177,6 +177,21 @@ body {
   box-shadow: 0 10px 24px rgba(99, 102, 241, 0.35);
 }
 
+.pl-pill--ghost {
+  background: transparent;
+  border-color: var(--pl-border);
+  color: var(--pl-text);
+  box-shadow: inset 0 0 0 1px var(--pl-border);
+  letter-spacing: 0.02em;
+}
+
+.pl-pill--ghost:hover:not(:disabled),
+.pl-pill--ghost:focus-visible:not(:disabled) {
+  background: var(--pl-button-hover-bg);
+  border-color: var(--pl-button-hover-border);
+  box-shadow: inset 0 0 0 1px transparent, 0 6px 18px rgba(37, 99, 235, 0.25);
+}
+
 .pl-theme-toggle {
   position: relative;
   width: 62px;

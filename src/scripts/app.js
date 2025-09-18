@@ -14,6 +14,8 @@ import { tinylinkLogin, tinylinkCreateLink } from "./tinylink.js";
 
 const boutonLien = document.querySelector("#tinylink-btn");
 let shortUrl = null;
+let tinylinkStatus = "loading";
+let tinylinkResetTimeoutId = null;
 
 async function initialiserTinyLink() {
   try {
@@ -22,25 +24,44 @@ async function initialiserTinyLink() {
     shortUrl = resultat.shortUrl;
 
     if (boutonLien) {
-      boutonLien.style.display = "inline-block";
-      boutonLien.textContent = "Copier le lien court";
+      if (tinylinkResetTimeoutId) {
+        clearTimeout(tinylinkResetTimeoutId);
+        tinylinkResetTimeoutId = null;
+      }
+      tinylinkStatus = "ready";
+      boutonLien.style.display = "inline-flex";
+      updateTinyLinkButtonLabel();
     }
   } catch (erreur) {
     console.warn("TinyLink indisponible :", erreur);
     if (boutonLien) {
-      boutonLien.style.display = "inline-block";
-      boutonLien.disabled = true;
-      boutonLien.textContent = "Lien court indisponible";
+      if (tinylinkResetTimeoutId) {
+        clearTimeout(tinylinkResetTimeoutId);
+        tinylinkResetTimeoutId = null;
+      }
+      tinylinkStatus = "error";
+      boutonLien.style.display = "inline-flex";
+      updateTinyLinkButtonLabel();
     }
   }
 }
 
 if (boutonLien) {
   boutonLien.addEventListener("click", () => {
-    if (!shortUrl) return;
-    navigator.clipboard.writeText(shortUrl);
-    boutonLien.textContent = "Lien copié !";
-    setTimeout(() => (boutonLien.textContent = "Copier le lien court"), 2000);
+    if (!shortUrl || tinylinkStatus === "error") {
+      return;
+    }
+    navigator.clipboard.writeText(shortUrl).catch(() => {});
+    if (tinylinkResetTimeoutId) {
+      clearTimeout(tinylinkResetTimeoutId);
+    }
+    tinylinkStatus = "copied";
+    updateTinyLinkButtonLabel();
+    tinylinkResetTimeoutId = setTimeout(() => {
+      tinylinkStatus = "ready";
+      updateTinyLinkButtonLabel();
+      tinylinkResetTimeoutId = null;
+    }, 2000);
   });
 }
 
@@ -126,6 +147,7 @@ const THEME_STORAGE_KEY = "pixellab-theme";
 const LOCALE_STORAGE_KEY = "pixellab-locale";
 let userThemeOverride = false;
 let systemThemeQuery;
+let currentLocale = "fr";
 
 const state = {
   filters: { ...FILTER_DEFAULTS },
@@ -207,6 +229,9 @@ const translations = {
     resetFilters: "Réinitialiser les filtres",
     exportCancelShort: "Annuler",
     exportConfirmShort: "Exporter",
+    tinylinkCopy: "Copier le lien court",
+    tinylinkUnavailable: "Lien court indisponible",
+    tinylinkCopied: "Lien copié !",
   },
   en: {
     tagline: "Lightweight image editor",
@@ -262,8 +287,35 @@ const translations = {
     resetFilters: "Reset filters",
     exportCancelShort: "Cancel",
     exportConfirmShort: "Export",
+    tinylinkCopy: "Copy short link",
+    tinylinkUnavailable: "Short link unavailable",
+    tinylinkCopied: "Link copied!",
   },
 };
+
+function updateTinyLinkButtonLabel() {
+  if (!boutonLien || tinylinkStatus === "loading") {
+    return;
+  }
+  const dict = translations[currentLocale] || translations.fr;
+  let label;
+  switch (tinylinkStatus) {
+    case "error":
+      label = dict.tinylinkUnavailable;
+      break;
+    case "copied":
+      label = dict.tinylinkCopied;
+      break;
+    case "ready":
+    default:
+      label = dict.tinylinkCopy;
+      break;
+  }
+  if (label) {
+    boutonLien.textContent = label;
+  }
+  boutonLien.disabled = tinylinkStatus === "error";
+}
 
 function announce(message) {
   if (!message) {
@@ -468,6 +520,8 @@ function applyLocale(locale, { persist = true } = {}) {
     return;
   }
 
+  currentLocale = nextLocale;
+
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     const key = node.dataset.i18n;
     const value = dict[key];
@@ -526,6 +580,8 @@ function applyLocale(locale, { persist = true } = {}) {
   }
   document.getElementById("preview-caption")?.replaceChildren(document.createTextNode(dict.heroAction));
   document.querySelector(".pl-footer small")?.replaceChildren(document.createTextNode(dict.footer));
+
+  updateTinyLinkButtonLabel();
 
   if (persist) {
     try {
