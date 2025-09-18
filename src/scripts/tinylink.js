@@ -3,7 +3,7 @@ const LOGIN_EMAIL = "perrocheautom@hotmail.fr";
 const LOGIN_PASSWORD = "T$2y$13$rYzoJ8.vGTE631Do.w6Yl..TqPWX3IbdAkIs6L9X.u8oN39fiusOS";
 
 // Connexion à l'API pour obtenir un jeton JWT
-async function tinylinkLogin() {
+export async function tinylinkLogin() {
   const res = await fetch(`${API_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -15,7 +15,7 @@ async function tinylinkLogin() {
 }
 
 // Création d’un lien court
-async function tinylinkCreateLink(token, urlCible) {
+export async function tinylinkCreateLink(token, urlCible) {
   const res = await fetch(`${API_URL}/api/links`, {
     method: "POST",
     headers: {
