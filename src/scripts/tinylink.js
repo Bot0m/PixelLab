@@ -1,6 +1,6 @@
 const API_URL = "http://127.0.0.1:8000";
 const LOGIN_EMAIL = "perrocheautom@hotmail.fr";
-const LOGIN_PASSWORD = "T$2y$13$rYzoJ8.vGTE631Do.w6Yl..TqPWX3IbdAkIs6L9X.u8oN39fiusOS";
+const LOGIN_PASSWORD = "test123";
 
 // Connexion à l'API pour obtenir un jeton JWT
 export async function tinylinkLogin() {
