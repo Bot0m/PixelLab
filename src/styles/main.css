@@ -101,6 +101,29 @@ body {
   gap: 0.9rem;
 }
 
+@media (max-width: 640px) {
+  .pl-header-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .pl-header-actions {
+    align-self: stretch;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    row-gap: 0.45rem;
+  }
+
+  .pl-header-actions #tinylink-btn {
+    order: 2;
+    flex-basis: 100%;
+    max-width: max-content;
+    margin-left: auto;
+  }
+}
+
 .pl-branding {
   display: flex;
   flex-direction: column;
